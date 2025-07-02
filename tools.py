@@ -1,21 +1,21 @@
-from fastmcp import FastMCP
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
-import requests
-import json
+#!/usr/bin/env python3
+"""
+MCP 工具模块
+包含所有可用的工具函数
+"""
+
 import os
-import subprocess
+import json
 import hashlib
 import base64
+import subprocess
+import requests
+from datetime import datetime
+from typing import Optional, Dict, Any
+from pydantic import BaseModel
 
-# 创建FastMCP实例
-mcp = FastMCP(
-    name="my-mcp-server",
-    version="1.0.0"
-)
+# ==================== 参数模型 ====================
 
-# 定义参数模型
 class HelloParams(BaseModel):
     name: str
 
@@ -68,13 +68,12 @@ class NetworkCheckParams(BaseModel):
 class JokeParams(BaseModel):
     category: Optional[str] = "any"
 
-# 定义工具
-@mcp.tool("hello")
+# ==================== 工具函数 ====================
+
 def hello(params: HelloParams) -> str:
     """返回一个问候消息"""
     return f"你好，{params.name}！欢迎使用MCP服务器！"
 
-@mcp.tool("getTime")
 def get_time(params: GetTimeParams) -> str:
     """获取当前时间"""
     now = datetime.now()
@@ -90,7 +89,6 @@ def get_time(params: GetTimeParams) -> str:
     
     return f"当前时间: {time_string}"
 
-@mcp.tool("calculate")
 def calculate(params: CalculateParams) -> str:
     """执行基本数学计算"""
     operation = params.operation.lower()
@@ -112,11 +110,9 @@ def calculate(params: CalculateParams) -> str:
     
     return f"{a} {operation} {b} = {result}"
 
-@mcp.tool("getWeather")
 def get_weather(params: WeatherParams) -> str:
     """获取天气信息"""
     try:
-        # 使用免费的天气API
         url = f"http://wttr.in/{params.city}?format=j1"
         response = requests.get(url, timeout=10)
         
@@ -138,11 +134,9 @@ def get_weather(params: WeatherParams) -> str:
     except Exception as e:
         return f"获取天气信息时发生错误: {str(e)}"
 
-@mcp.tool("translate")
 def translate(params: TranslateParams) -> str:
     """翻译文本"""
     try:
-        # 使用免费的翻译API
         url = "https://translate.googleapis.com/translate_a/single"
         params_dict = {
             'client': 'gtx',
@@ -164,7 +158,6 @@ def translate(params: TranslateParams) -> str:
     except Exception as e:
         return f"翻译时发生错误: {str(e)}"
 
-@mcp.tool("fileRead")
 def file_read(params: FileReadParams) -> str:
     """读取本地文件"""
     try:
@@ -183,11 +176,9 @@ def file_read(params: FileReadParams) -> str:
     except Exception as e:
         return f"❌ 读取文件时发生错误: {str(e)}"
 
-@mcp.tool("fileWrite")
 def file_write(params: FileWriteParams) -> str:
     """写入本地文件"""
     try:
-        # 确保目录存在
         os.makedirs(os.path.dirname(params.path), exist_ok=True)
         
         with open(params.path, 'w', encoding=params.encoding) as f:
@@ -200,7 +191,6 @@ def file_write(params: FileWriteParams) -> str:
     except Exception as e:
         return f"❌ 写入文件时发生错误: {str(e)}"
 
-@mcp.tool("fileList")
 def file_list(params: FileListParams) -> str:
     """列出目录内容"""
     try:
@@ -232,7 +222,6 @@ def file_list(params: FileListParams) -> str:
     except Exception as e:
         return f"❌ 列出目录时发生错误: {str(e)}"
 
-@mcp.tool("hashText")
 def hash_text(params: HashParams) -> str:
     """对文本进行哈希计算"""
     try:
@@ -256,23 +245,19 @@ def hash_text(params: HashParams) -> str:
     except Exception as e:
         return f"❌ 计算哈希时发生错误: {str(e)}"
 
-@mcp.tool("base64Encode")
 def base64_encode(params: Base64Params) -> str:
     """Base64编码或解码"""
     try:
         if params.encode:
-            # 编码
             encoded = base64.b64encode(params.text.encode('utf-8')).decode('utf-8')
             return f"Base64 编码结果: {encoded}"
         else:
-            # 解码
             decoded = base64.b64decode(params.text.encode('utf-8')).decode('utf-8')
             return f"Base64 解码结果: {decoded}"
             
     except Exception as e:
         return f"❌ Base64 操作时发生错误: {str(e)}"
 
-@mcp.tool("getSystemInfo")
 def get_system_info(params: SystemInfoParams) -> str:
     """获取系统信息"""
     try:
@@ -312,7 +297,6 @@ def get_system_info(params: SystemInfoParams) -> str:
         except:
             info["操作系统"] = "未知"
         
-        # 格式化输出
         result = "系统信息:\n"
         for key, value in info.items():
             result += f"  {key}: {value}\n"
@@ -322,12 +306,10 @@ def get_system_info(params: SystemInfoParams) -> str:
     except Exception as e:
         return f"❌ 获取系统信息时发生错误: {str(e)}"
 
-@mcp.tool("getProcessInfo")
 def get_process_info(params: ProcessInfoParams) -> str:
     """获取进程信息"""
     try:
         if params.name:
-            # 查找特定进程
             result = subprocess.run(
                 ["ps", "aux", "|", "grep", params.name],
                 capture_output=True,
@@ -339,14 +321,13 @@ def get_process_info(params: ProcessInfoParams) -> str:
             else:
                 return f"未找到进程: {params.name}"
         else:
-            # 获取所有进程
             result = subprocess.run(
                 ["ps", "aux"],
                 capture_output=True,
                 text=True
             )
             if result.returncode == 0:
-                lines = result.stdout.split('\n')[:10]  # 只显示前10行
+                lines = result.stdout.split('\n')[:10]
                 return f"系统进程信息 (前10个):\n" + "\n".join(lines)
             else:
                 return "获取进程信息失败"
@@ -354,11 +335,10 @@ def get_process_info(params: ProcessInfoParams) -> str:
     except Exception as e:
         return f"❌ 获取进程信息时发生错误: {str(e)}"
 
-@mcp.tool("checkNetwork")
 def check_network(params: NetworkCheckParams) -> str:
     """检查网络连接"""
     try:
-        response = requests.get(params.url, timeout=params.timeout)
+        response = requests.get(params.url, timeout=10)
         
         if response.status_code == 200:
             return f"✅ 网络连接正常，可以访问 {params.url}"
@@ -372,7 +352,6 @@ def check_network(params: NetworkCheckParams) -> str:
     except Exception as e:
         return f"❌ 检查网络时发生错误: {str(e)}"
 
-@mcp.tool("getJoke")
 def get_joke(params: JokeParams) -> str:
     """获取笑话"""
     try:
@@ -399,7 +378,21 @@ def get_joke(params: JokeParams) -> str:
     except Exception as e:
         return f"获取笑话时发生错误: {str(e)}"
 
-# 启动服务器
-if __name__ == "__main__":
-    mcp.run() 
-    
+# ==================== 工具注册函数 ====================
+
+def register_tools(mcp_server):
+    """注册所有工具到 MCP 服务器"""
+    mcp_server.tool("hello")(hello)
+    mcp_server.tool("getTime")(get_time)
+    mcp_server.tool("calculate")(calculate)
+    mcp_server.tool("getWeather")(get_weather)
+    mcp_server.tool("translate")(translate)
+    mcp_server.tool("fileRead")(file_read)
+    mcp_server.tool("fileWrite")(file_write)
+    mcp_server.tool("fileList")(file_list)
+    mcp_server.tool("hashText")(hash_text)
+    mcp_server.tool("base64Encode")(base64_encode)
+    mcp_server.tool("getSystemInfo")(get_system_info)
+    mcp_server.tool("getProcessInfo")(get_process_info)
+    mcp_server.tool("checkNetwork")(check_network)
+    mcp_server.tool("getJoke")(get_joke) 

@@ -1,10 +1,36 @@
 # MCP 服务器
 
-这是一个使用 FastMCP 构建的功能丰富的 MCP (Model Context Protocol) 服务器。
+一个功能丰富的 MCP (Model Context Protocol) 服务器，提供多种实用工具。
 
-## 功能
+## 🚀 功能特性
 
-这个 MCP 服务器提供了以下工具：
+### 基础工具
+- **hello** - 返回问候消息
+- **getTime** - 获取当前时间
+- **calculate** - 执行基本数学计算
+
+### 外部服务
+- **getWeather** - 获取天气信息
+- **translate** - 翻译文本
+
+### 文件操作
+- **fileRead** - 读取本地文件
+- **fileWrite** - 写入本地文件
+- **fileList** - 列出目录内容
+
+### 实用工具
+- **hashText** - 计算文本哈希值
+- **base64Encode** - Base64 编码/解码
+
+### 系统信息
+- **getSystemInfo** - 获取系统信息
+- **getProcessInfo** - 获取进程信息
+
+### 网络工具
+- **checkNetwork** - 检查网络连接
+
+### 娱乐工具
+- **getJoke** - 获取笑话
 
 ### 🔧 基础工具
 1. **hello** - 返回问候消息
